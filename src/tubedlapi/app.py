@@ -1,67 +1,67 @@
 # -*- coding: utf-8 -*-
 
-import os
-import pdb  # noqa
+import logging
+from typing import Callable, Type
 
-from apistar import Component, Include, Route
-from apistar.backends import sqlalchemy_backend
-from apistar.frameworks.asyncio import ASyncIOApp as App
-from apistar.frameworks.cli import CliApp
-from apistar.handlers import docs_urls, static_urls
-from apistar.types import Settings
+import flask
+from diecast.inject import make_injector
+from diecast.registry import get_registry, register_component
 
-from tubedlapi.model import BaseModel
-from tubedlapi.util.async import JobExecutor
+from tubedlapi.components import (
+    database,
+    jobexec,
+    sentry,
+    settings as app_settings,
+)
 
-__app = None
-
-
-def get_app() -> App:
-
-    global __app
-
-    return __app
+inject: Callable[[Callable], Callable] = make_injector(get_registry())
 
 
 def main():
 
-    global __app
-
-    from tubedlapi.components.client import (
-        AppClient,
-        make_app_client,
-    )
     from tubedlapi.routes import (
         job,
         profile,
     )
 
-    routes = [
-        Include('/docs', docs_urls),
-        Include('/static', static_urls),
-        Include('/profiles', profile.routes),
-        Include('/jobs', job.routes),
-        Route('/_debug', 'GET', pdb.set_trace),
+    blueprints = [
+        job.blueprint,
+        profile.blueprint,
     ]
 
-    components = [
-        Component(AppClient, init=make_app_client),
-        Component(JobExecutor, init=JobExecutor),
-    ]
-    components.extend(sqlalchemy_backend.components)
+    # Register initial component dependencies
+    register_component(**app_settings.component)
+    register_component(**database.component)
+    register_component(**jobexec.component)
 
-    app = App(
-        routes=routes,
-        settings=Settings({
-            'DATABASE': {
-                'URL': 'sqlite://{}'.format(os.getenv('DB_PATH', '/app/tubedlapi.db')),
-                'METADATA': BaseModel.metadata,
-            },
-            'DEBUG': True,
-        }),
-        commands=sqlalchemy_backend.commands,
-        components=components,
+    # Grab the settings component for logging setup
+    settings = get_registry()[app_settings.Settings]['instance']
+    logging.basicConfig(
+        level=settings.LOG_LEVEL,
+        format='%(levelname)-8s | %(name)12s | %(message)s',
+        handlers=[
+            logging.StreamHandler(),
+        ],
     )
-    __app = app
 
-    app.main()
+    # Set up the application and register route blueprints
+    app = flask.Flask(__name__)
+    [app.register_blueprint(blueprint) for blueprint in blueprints]
+
+    # Register Flask app as a component
+    register_component(
+        flask.Flask,
+        init=lambda: app,
+        persist=True,
+    )
+
+    # Register the Sentry component
+    register_component(**sentry.component)
+
+    run()
+
+
+@inject
+def run(app: flask.Flask, settings: app_settings.Settings):
+
+    app.run(debug=settings.DEBUG)

@@ -5,14 +5,21 @@ import functools
 import typing
 from concurrent.futures import ThreadPoolExecutor
 
+from diecast.component import Component
 
-class JobExecutor(object):
+
+class JobExecutor(Component):
     ''' Executor utility class supporting futures and coroutines.
         Adapted from https://gist.github.com/s0hvaperuna/48f07b8a2183fcf3f9364536f54814d5
     '''
 
     thread_pool: ThreadPoolExecutor = None
     loop: asyncio.AbstractEventLoop = None
+
+    @classmethod
+    def init(cls: typing.Type[Component]) -> 'JobExecutor':
+
+        return JobExecutor()
 
     def __init__(self):
 

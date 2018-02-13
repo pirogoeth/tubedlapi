@@ -5,85 +5,89 @@ import typing
 from http import HTTPStatus as status
 from urllib.parse import unquote_plus
 
-import sqlalchemy
-from apistar import Response, Route, typesystem
-from apistar.backends.sqlalchemy_backend import Session
-from tubedlapi.model import binding
-from tubedlapi.model.profile import (
-    Profile,
-    ProfileName,
-    ProfileObject,
+import peewee
+from flask import (
+    Blueprint,
+    Response,
+    json,
+    request,
 )
+from flask.json import jsonify
+
+from tubedlapi.model.profile import Profile
 
 log = logging.getLogger(__name__)
+blueprint = Blueprint(
+    'profile',
+    __name__,
+    url_prefix='/profiles',
+)
 
 
-def list_profiles(session: Session) -> typing.List[ProfileObject]:
+@blueprint.route('/', methods=['GET'])
+def list_profiles() -> Response:
 
-    profiles = session.query(Profile).all()
-    return [ProfileObject.from_model(p) for p in profiles]
+    return jsonify([p.to_dict() for p in Profile.select()])
 
 
-def create_profile(session: Session, profile: ProfileObject) -> ProfileObject:
+@blueprint.route('/<string:name>', methods=['GET'])
+def show_profile(name: str) -> Response:
+
+    name = unquote_plus(name)
+
+    try:
+        return jsonify(Profile.get(name=name).to_dict())
+    except Profile.DoesNotExist:
+        return jsonify({
+            'message': 'not found',
+            'query': {
+                'name': name,
+            },
+        }), status.NOT_FOUND
+
+
+@blueprint.route('/', methods=['POST'])
+def create_profile() -> Response:
+
+    payload = request.get_json()
+    options = payload.get('options', {})
+
+    if isinstance(options, dict):
+        payload.update({
+            'options': bytes(json.dumps(options), 'utf-8'),
+        })
 
     # TODO: Do not allow overwriting of profiles
-    new_profile = profile.to_model()
+    new_profile = Profile(**payload)
     try:
-        session.add(new_profile)
-        session.flush()
-        return ProfileObject.from_model(new_profile)
-    except sqlalchemy.exc.IntegrityError:
-        session.rollback()
-
-        return Response({
+        new_profile.save()
+        return jsonify({
+            'message': 'success',
+            'profile': new_profile.to_dict(),
+        })
+    except peewee.IntegrityError:
+        return jsonify({
             'message': 'name already in use',
-        }, status=status.CONFLICT)
+        }), status.CONFLICT
 
 
-def show_profile(session: Session, name: ProfileName) -> ProfileObject:
-
-    name = unquote_plus(name)
-    res = []
-
-    with binding(session):
-        res = Profile.find(name=name).all()
-
-    if len(res) > 0:
-        return ProfileObject.from_model(res[0])
-    else:
-        return Response({
-            'message': 'not found',
-            'query': {
-                'name': name,
-            },
-        }, status=status.NOT_FOUND)
-
-
-def delete_profile(session: Session, name: ProfileName) -> dict:
+@blueprint.route('/<string:name>', methods=['DELETE'])
+def delete_profile(name: str) -> dict:
 
     name = unquote_plus(name)
 
-    res = session.query(Profile).filter_by(name=name).all()
-    if len(res) > 0:
-        ret = ProfileObject.from_model(res[0])
-        session.delete(res[0])
-        session.commit()
-        return Response({
+    try:
+        res = Profile.get(name=name)
+        last_state = res.to_dict()
+        res.delete_instance()
+        return jsonify({
             'message': 'deleted',
-            'profile': ret,
-        }, status=status.OK)
-    else:
-        return Response({
+            'profile': last_state,
+        })
+    except Profile.DoesNotExist:
+        return jsonify({
             'message': 'not found',
             'query': {
                 'name': name,
             },
-        }, status=status.NOT_FOUND)
-
-
-routes = [
-    Route('/', 'GET', list_profiles),
-    Route('/', 'POST', create_profile),
-    Route('/{name}', 'GET', show_profile),
-    Route('/{name}', 'DELETE', delete_profile),
-]
+        }), status.NOT_FOUND
