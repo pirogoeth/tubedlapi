@@ -35,7 +35,7 @@ setup(
         ],
     },
     install_requires=[
-        'apistar',
+        'flask',
         'youtube-dl',
     ],
     include_package_data=True,

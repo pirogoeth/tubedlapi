@@ -1,85 +1,41 @@
 # -*- coding: utf-8 -*-
 
-import json
+import codecs
 
-from apistar import typesystem
-from sqlalchemy import (
-    Column,
-    Integer,
-    LargeBinary,
-    String,
+from flask import json
+from peewee import (
+    AutoField,
+    BlobField,
+    TextField,
 )
-from sqlalchemy.orm.query import Query
 
-from tubedlapi.model import BaseModel, get_session
-
-ProfileName = typesystem.string(
-    description='Name of profile, url-encoded if necessary',
-    default='default',
-)
+from tubedlapi.model import BaseModel
 
 
 class Profile(BaseModel):
 
-    __tablename__ = 'profile'
-
-    id = Column(Integer, primary_key=True, autoincrement='auto')
-    name = Column(String, unique=True)
-    options = Column(LargeBinary)
+    id = AutoField(primary_key=True)
+    name = TextField(unique=True)
+    options = BlobField()
 
     @classmethod
-    def find(cls, **query) -> Query:
+    def from_json(cls, data: bytes) -> 'Profile':
 
-        session = get_session()
-        return session.query(cls).filter_by(**query)
+        return Profile(**json.loads(data))
 
+    @property
+    def options_dict(self) -> dict:
 
-class ProfileOptions(dict):
+        return json.loads(self.options)
 
-    description = (
-        'youtube-dl options dictionary. see <a href=\'https://github.com/rg3/youtube-dl'
-        '/blob/master/README.md#embedding-youtube-dl\'>rg3/youtube-dl</a> for examples.'
-    )
+    def to_dict(self) -> dict:
 
+        return {
+            'id': self.id,
+            'name': self.name,
+            'options': self.options_dict,
+        }
 
-class ProfileObject(typesystem.Object):
+    def to_json(self) -> bytes:
 
-    properties = {
-        'id': typesystem.integer(
-            description='Profile identifier',
-        ),
-        'name': ProfileName,
-        'options': typesystem.newtype(
-            ProfileOptions,
-        ),
-    }
-
-    default = {
-        'options': {
-            'format': 'bestaudio/best',
-            'postprocessors': [
-                {
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                },
-            ],
-        },
-    }
-
-    @classmethod
-    def from_model(cls, model: Profile):
-
-        return ProfileObject(
-            id=model.id,
-            name=model.name,
-            options=json.loads(model.options),
-        )
-
-    def to_model(self) -> Profile:
-
-        return Profile(
-            id=self.get('id', None),
-            name=self.get('name', None),
-            options=bytes(json.dumps(self.get('options', '{}')), 'utf-8'),
-        )
+        return json.dumps(self.to_dict())

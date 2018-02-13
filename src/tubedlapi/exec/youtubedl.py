@@ -1,26 +1,21 @@
 # -*- coding: utf-8 -*-
 
 import functools
+import logging
 import typing
 
 import youtube_dl
+from flask import json
 
-from tubedlapi.app import get_app
-from tubedlapi.components.client import AppClient
-from tubedlapi.model import binding_new_session
-from tubedlapi.model.job import (
-    JobMetadata,
-    JobObject,
-)
-from tubedlapi.model.profile import (
-    ProfileObject,
-    ProfileOptions,
-)
+from tubedlapi.model.job import Job
+from tubedlapi.model.profile import Profile
+
+log = logging.getLogger(__name__)
 
 
-def fetch_url(job: JobObject, profile: ProfileObject):
+def fetch_url(job: Job, profile: Profile):
 
-    options = profile['options']
+    options = json.loads(profile.options)
     options.update({
         'logger': None,
         'progress_hooks': [
@@ -28,22 +23,24 @@ def fetch_url(job: JobObject, profile: ProfileObject):
         ],
     })
 
-    return _fetch(job['meta']['url'], options)
+    return _fetch(job.meta_dict['url'], options)
 
 
-def _fetch(url: str, options: ProfileOptions):
+def _fetch(url: str, options: dict):
 
     with youtube_dl.YoutubeDL(options) as dl:
         return dl.download([url])
 
 
-def _progress_hook(job: JobObject, info: dict):
+def _progress_hook(job: Job, info: dict):
 
-    client = get_app().preloaded_state[AppClient]
-    get_app().console.echo('AppClient: %s' % (client))
-    client.post(
-        '/jobs/{id}',
-        data={
-            'status': info['status'],
-        },
-    )
+    if job.status != info['status']:
+        log.info(
+            'Job transitioning from {old_state} to {new_state}'.format(
+                old_state=job.status,
+                new_state=info['status'],
+            )
+        )
+
+        job.status = info['status']
+        job.save()

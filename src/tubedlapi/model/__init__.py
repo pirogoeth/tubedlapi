@@ -1,68 +1,103 @@
 # -*- coding: utf-8 -*-
 
-import contextlib
-import typing
+import glob
+import inspect
+import logging
+import os
+import peewee
+import playhouse
 
-from apistar.backends.sqlalchemy_backend import (
-    Session,
-    SQLAlchemyBackend,
-    get_session as session_manager,
+from playhouse.migrate import (
+    PostgresqlMigrator,
+    SqliteMigrator,
 )
-from sqlalchemy.ext.declarative import declarative_base
+from importlib import import_module
+from malibu.text import parse_uri
 
-BaseModel = declarative_base()
-__session = None
+from tubedlapi.components import settings
+
+modules = glob.glob(os.path.dirname(__file__) + '/*.py')
+__all__ = [os.path.basename(f)[:-3] for f in modules
+           if not os.path.basename(f).startswith('_') and
+              not f.endswith('__init__.py') and os.path.isfile(f)]
+
+LOG = logging.getLogger(__name__)
+
+database_proxy = peewee.Proxy()
+database_migrator = None
 
 
-@contextlib.contextmanager
-def binding(session: Session) -> typing.Generator:
-    ''' Used in the duration of a request to bind models to the
-        current, active Session instance.
-
-        Mostly useful for 'hygienic' classmethods on models,
-        a la `Profile.find()`.
+class FKSqliteDatabase(peewee.SqliteDatabase):
+    ''' A simple wrapper around peewee's SqliteDatabase that
+        enables foreign keys with a pragma when the connection
+        is initialized.
     '''
 
-    global __session
-    __session = session
+    def initialize_connection(self, conn):
 
-    yield
-
-    __session = None
+        self.execute_sql('PRAGMA foreign_keys=ON;')
 
 
-def get_session() -> Session:
-    ''' Returns the Session or raises a RuntimeError
-        if session access is attempted outside of a request.
+class BaseModel(peewee.Model):
+    ''' Simple base model with the database set as a peewee
+        database proxy so we can dynamically initialize the
+        database connection with information from the config
+        file.
     '''
 
-    global __session
-
-    if not __session:
-        raise RuntimeError('Attempted session access outside of request')
-
-    return __session
+    class Meta:
+        database = database_proxy
 
 
-@contextlib.contextmanager
-def make_new_session() -> typing.Generator[Session, None, None]:
-    ''' Uses the app instance to bind a new session object
-        for use when a request is not in progress.
+def init_database_from_uri(db_uri: str) -> peewee.Proxy:
+    ''' Builds a database connection from a DB URI.
     '''
 
-    from tubedlapi.app import get_app
+    global database_migrator
 
-    backend = get_app().preloaded_state[SQLAlchemyBackend]
+    db_uri = parse_uri(db_uri)
 
-    with session_manager(backend) as session:
-        yield session
+    if db_uri['protocol'] == 'sqlite':
+        database = FKSqliteDatabase(db_uri['resource'])
+        database_migrator = SqliteMigrator(database)
+    elif db_uri['protocol'] == 'postgres':
+        database = playhouse.postgres_ext.PostgresqlExtDatabase(
+            db_uri['database'],
+            user=db_uri['username'],
+            password=db_uri['password'],
+            host=db_uri['host'],
+            port=db_uri['port'],
+        )
+        database_migrator = PostgresqlMigrator(database)
+    else:
+        raise ValueError('Unknown DB schema: {}'.format(db_uri['protocol']))
 
+    database_proxy.initialize(database)
+    database.connect()
 
-@contextlib.contextmanager
-def binding_new_session() -> typing.Generator:
-    ''' Generative wrapper around `make_new_session`.
-    '''
+    # Import all BaseModels and run create_tables(...)
+    tables = []
+    for module in __all__:
+        mod = import_module('{}.{}'.format(__package__, module))
+        for member in dir(mod):
+            member_obj = getattr(mod, member)
 
-    with make_new_session() as session:
-        with binding(session):
-            yield session
+            if not inspect.isclass(member_obj):
+                continue
+
+            if member_obj.__name__ == 'BaseModel':
+                continue
+
+            if issubclass(member_obj, BaseModel):
+                LOG.debug('Loading database model: %s.%s.%s' % (
+                    __package__, module, member))
+                tables.append(member_obj)
+
+    LOG.debug('Ensuring tables are safely created..')
+
+    try:
+        database.create_tables(tables, safe=True)
+    except:
+        LOG.exception('An error occurred while ensuring tables')
+
+    return database_proxy
