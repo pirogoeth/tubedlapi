@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from functools import partial
 from http import HTTPStatus as status
 from urllib.parse import unquote_plus
 
@@ -64,16 +65,25 @@ def create_job(executor: JobExecutor):
         job_record,
         profile,
     )
-    future.add_done_callback(_create_job_callback)
+    future.add_done_callback(
+        partial(
+            _create_job_callback,
+            job_record,
+        ),
+    )
 
     return job_record.to_json()
 
 
-def _create_job_callback(fut: asyncio.Future):
+def _create_job_callback(job: Job, fut: asyncio.Future):
 
     exc = fut.exception()
     if not fut.cancelled() and exc:
         raise exc
+
+    if fut.done():
+        job.meta_update(result=fut.result())
+        job.save()
 
 
 @blueprint.route('/<uuid:job_id>')

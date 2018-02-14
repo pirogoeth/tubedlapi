@@ -32,6 +32,12 @@ class Job(BaseModel):
 
         return json.loads(self.meta)
 
+    def meta_update(self, **kw) -> dict:
+
+        meta = self.meta_dict
+        meta.update(kw)
+        self.meta = json.dumps(meta)
+
     def to_dict(self) -> dict:
 
         return {
