@@ -13,11 +13,29 @@ from tubedlapi.model.profile import Profile
 log = logging.getLogger(__name__)
 
 
+class FetchLogger(object):
+
+    def __init__(self, job: Job, profile: Profile):
+
+        self.job = job
+        self.profile = profile
+
+    def message(self, msg):
+
+        # TODO: Put fetch logs into a database model.
+        pass
+
+    debug = message
+    error = message
+    warning = message
+
+
 def fetch_url(job: Job, profile: Profile):
 
     options = json.loads(profile.options)
     options.update({
-        'logger': None,
+        'outtmpl': f'{job.id}.%(format)s',
+        'logger': FetchLogger(job, profile),
         'progress_hooks': [
             functools.partial(_progress_hook, job)
         ],
@@ -43,4 +61,5 @@ def _progress_hook(job: Job, info: dict):
         )
 
         job.status = info['status']
+        job.meta_update(info=info)
         job.save()
