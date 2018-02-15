@@ -6,6 +6,7 @@ import typing
 
 import youtube_dl
 from flask import json
+from youtube_dl.postprocessor.common import PostProcessor
 
 from tubedlapi.model.job import Job
 from tubedlapi.model.profile import Profile
@@ -30,6 +31,61 @@ class FetchLogger(object):
     warning = message
 
 
+class JobPostProcessor(PostProcessor):
+    ''' Youtube-DL post-processor for getting
+        the final filename from the end of the
+        post-processor chain.
+    '''
+
+    def __init__(self, job: Job):
+
+        self._job = job
+
+    def filter_info(self, info):
+
+        return {
+            'codecs': {
+                'audio': info.get('acodec'),
+                'video': info.get('vcodec'),
+            },
+            'downloaded': {
+                'filename': info.get('filepath'),
+                'filesize_bytes': info.get('filesize'),
+            },
+            'source': {
+                'description': info.get('description'),
+                'duration': info.get('duration'),
+                'original_url': info.get('webpage_url'),
+                'tags': info.get('tags'),
+                'thumbnails': [t.get('url') for t in info.get('thumbnails', [])],
+                'title': info.get('title'),
+            },
+            'uploader': {
+                'id': info.get('uploader_id'),
+                'url': info.get('uploader_url'),
+            },
+        }
+
+    def run(self, info):
+        ''' Basically, a dummy implementation of run to get the final
+            information dictionary from the end of the post-processor
+            chain.
+        '''
+
+        log.info(
+            'Job %s finished execution in post-processor chain',
+            self._job.id,
+        )
+
+        info = self.filter_info(info)
+
+        self._job.status = 'finished'
+        self._job.meta_update(info=info)
+        self._job.save()
+
+        return [], self.filter_info(info)
+
+
 def fetch_url(job: Job, profile: Profile):
 
     options = json.loads(profile.options)
@@ -41,12 +97,16 @@ def fetch_url(job: Job, profile: Profile):
         ],
     })
 
-    return _fetch(job.meta_dict['url'], options)
+    job_proc = JobPostProcessor(job)
+
+    return _fetch(job.meta_dict['url'], options, job_proc)
 
 
-def _fetch(url: str, options: dict):
+def _fetch(url: str, options: dict, job_proc: JobPostProcessor):
 
     with youtube_dl.YoutubeDL(options) as dl:
+        job_proc.set_downloader(dl)
+        dl.add_post_processor(job_proc)
         return dl.download([url])
 
 
@@ -60,6 +120,12 @@ def _progress_hook(job: Job, info: dict):
             )
         )
 
-        job.status = info['status']
-        job.meta_update(info=info)
+        # status == 'finished' means download is finished -- waiting
+        # for post-processor chain to complete execution.
+        if info['status'] == 'finished':
+            job.status = 'processing'
+        else:
+            job.status = info['status']
+
+        job.meta_update(extractor=info)
         job.save()
