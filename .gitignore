@@ -2,7 +2,9 @@ __pycache__
 *.pyc
 *.pyo
 *.egg-info
+.eggs
 .env
+.mypy_cache
 .vscode
 src/diecast/
 database.db
