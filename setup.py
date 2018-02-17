@@ -34,6 +34,12 @@ setup(
             'tubedlapi = tubedlapi.app:main',
         ],
     },
+    extras_require={
+        'develop': [
+            'flake8',
+            'mypy',
+        ],
+    },
     install_requires=[
         'flask',
         'youtube-dl',

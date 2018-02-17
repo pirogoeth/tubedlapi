@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from typing import Callable, Type
 
 import flask
 from diecast.inject import make_injector
 from diecast.registry import get_registry, register_component
+from diecast.types import Injector
 
 from tubedlapi.components import (
+    crypto,
     database,
     jobexec,
     sentry,
     settings as app_settings,
 )
 
-inject: Callable[[Callable], Callable] = make_injector(get_registry())
+inject: Injector = make_injector(get_registry())
 
 
 def main():
@@ -31,6 +32,7 @@ def main():
 
     # Register initial component dependencies
     register_component(**app_settings.component)
+    register_component(**crypto.component)
     register_component(**database.component)
     register_component(**jobexec.component)
 
