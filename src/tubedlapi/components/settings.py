@@ -11,11 +11,13 @@ log = logging.getLogger(__name__)
 
 class Settings(Component):
 
+    CRYPTO_SALT: str = None
     CRYPTO_SECRET: str = None
     CRYPTO_KDF_ITERATIONS: int = 10000
     DATABASE_URI: str = None
     DEBUG: bool = False
     LOG_LEVEL: int = logging.INFO
+    SENTRY_LOG_LEVEL: int = logging.WARNING
     SENTRY_TRANSPORT: str = 'HTTPTransport'
     SENTRY_URL: str = None
 
@@ -34,6 +36,8 @@ class Settings(Component):
 
         # Crypto settings
         this.CRYPTO_SECRET = os.getenv('CRYPTO_SECRET')
+        this.CRYPTO_SALT = os.getenv('CRYPTO_SALT')
+
         try:
             this.CRYPTO_KDF_ITERATIONS = int(os.getenv('CRYPTO_KDF_ITERATIONS', '10000'))
         except ValueError:
@@ -41,6 +45,10 @@ class Settings(Component):
             this.CRYPTO_KDF_ITERATIONS = 10000
 
         # Sentry settings
+        this.SENTRY_LOG_LEVEL = logging._nameToLevel.get(
+            os.getenv('SENTRY_LOG_LEVEL', 'WARNING').upper(),
+            logging.WARNING,
+        )
         this.SENTRY_TRANSPORT = os.getenv('SENTRY_TRANSPORT', 'HTTPTransport')
         this.SENTRY_URL = os.getenv('SENTRY_URL', None)
 
