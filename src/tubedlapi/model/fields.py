@@ -6,17 +6,17 @@ from typing import Any
 from peewee import BlobField
 
 from tubedlapi.app import inject
-from tubedlapi.util.crypto import CryptProvider
+from tubedlapi.util.crypto import CryptoProvider
 
 
 @inject
-def encrypt_blob(crypt: CryptProvider, blob: bytes) -> bytes:
+def encrypt_blob(crypt: CryptoProvider, blob: bytes) -> bytes:
 
     return crypt.encrypt_blob(blob)
 
 
 @inject
-def decrypt_blob(crypt: CryptProvider, message: bytes) -> bytes:
+def decrypt_blob(crypt: CryptoProvider, message: bytes) -> bytes:
 
     return crypt.decrypt_message(message)
 
