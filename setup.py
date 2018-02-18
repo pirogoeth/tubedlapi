@@ -33,6 +33,10 @@ setup(
         'console_scripts': [
             'tubedlapi = tubedlapi.app:main',
         ],
+        'flask.commands': [
+            'make-secret = tubedlapi.cmd.crypto:cli_make_secret',
+            'make-salt = tubedlapi.cmd.crypto:cli_make_salt',
+        ],
     },
     extras_require={
         'develop': [
