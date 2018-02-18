@@ -10,12 +10,12 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 
 
-class CryptProvider(object):
-    ''' CryptProvider provides an encryption layer for data blobs.
+class CryptoProvider(object):
+    ''' CryptoProvider provides an encryption layer for data blobs.
         Given a secret, uses PBKDF2HMAC to stretch the key into
         a value suitable for encryption.
 
-        CryptProvide will provide a simple encryption/decryption
+        CryptoProvide will provide a simple encryption/decryption
         interface for performing crypto operations on blobs of data.
     '''
 
@@ -32,7 +32,7 @@ class CryptProvider(object):
         return salt
 
     def __init__(self, secret: bytes, iterations: int=10000, salt: bytes=None):
-        ''' Creates a CryptProvider.
+        ''' Creates a CryptoProvider.
 
             Initializes the key which will be utilized in all
             encryption operations.
