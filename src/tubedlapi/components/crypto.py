@@ -19,10 +19,10 @@ def make_crypt_provider(settings: app_settings.Settings) -> crypto.CryptProvider
         )
         salt = None
     else:
-        salt = bytes(settings.CRYPTO_SALT, 'utf-8')
+        salt = settings.crypto_salt_bytes
 
     return crypto.CryptProvider(
-        secret=bytes(settings.CRYPTO_SECRET, 'utf-8'),
+        secret=settings.crypto_secret_bytes,
         iterations=settings.CRYPTO_KDF_ITERATIONS,
         salt=salt,
     )

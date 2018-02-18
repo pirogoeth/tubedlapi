@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import base64
+import binascii
 import logging
 import os
 from typing import Type
@@ -67,6 +69,26 @@ class Settings(Component):
             return 'develop'
         else:
             return 'production'
+
+    @property
+    def crypto_salt_bytes(self) -> bytes:
+        ''' Try to return CRYPTO_SALT as decoded bytes.
+        '''
+
+        try:
+            return base64.b64decode(self.CRYPTO_SALT)
+        except binascii.Error:
+            return bytes(self.CRYPTO_SALT, 'utf-8')
+
+    @property
+    def crypto_secret_bytes(self) -> bytes:
+        ''' Try to return CRYPTO_SECRET as decoded bytes.
+        '''
+
+        try:
+            return base64.b64decode(self.CRYPTO_SECRET)
+        except binascii.Error:
+            return bytes(self.CRYPTO_SECRET, 'utf-8')
 
 
 component = {
