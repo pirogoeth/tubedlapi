@@ -50,7 +50,7 @@ def init_sentry(app: Flask, settings: app_settings.Settings) -> Sentry:
             app=app,
             dsn=settings.SENTRY_URL,
             logging=True,
-            level=settings.LOG_LEVEL,
+            level=settings.SENTRY_LOG_LEVEL,
         )
 
     return None

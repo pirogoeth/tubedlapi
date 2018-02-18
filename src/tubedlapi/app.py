@@ -32,9 +32,6 @@ def main():
 
     # Register initial component dependencies
     register_component(**app_settings.component)
-    register_component(**crypto.component)
-    register_component(**database.component)
-    register_component(**jobexec.component)
 
     # Grab the settings component for logging setup
     settings = get_registry()[app_settings.Settings]['instance']
@@ -45,6 +42,11 @@ def main():
             logging.StreamHandler(),
         ],
     )
+
+    # Initialize the remaining components
+    register_component(**crypto.component)
+    register_component(**database.component)
+    register_component(**jobexec.component)
 
     # Set up the application and register route blueprints
     app = flask.Flask(__name__)
@@ -57,7 +59,7 @@ def main():
         persist=True,
     )
 
-    # Register the Sentry component
+    # Register the Sentry component only after app creation!
     register_component(**sentry.component)
 
     run()
