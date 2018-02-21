@@ -4,7 +4,7 @@ import logging
 
 import flask
 from diecast.inject import make_injector
-from diecast.registry import get_registry, register_component
+from diecast.registry import ComponentRegistry, get_registry
 from diecast.types import Injector
 
 from tubedlapi.components import (
@@ -15,7 +15,8 @@ from tubedlapi.components import (
     settings as app_settings,
 )
 
-inject: Injector = make_injector(get_registry())
+registry = ComponentRegistry()
+inject: Injector = make_injector(registry)
 
 
 def main():
@@ -31,10 +32,10 @@ def main():
     ]
 
     # Register initial component dependencies
-    register_component(**app_settings.component)
+    registry.add(**app_settings.component)
 
     # Grab the settings component for logging setup
-    settings = get_registry()[app_settings.Settings]['instance']
+    settings = registry[app_settings.Settings]
     logging.basicConfig(
         level=settings.LOG_LEVEL,
         format='%(levelname)-8s | %(name)12s | %(message)s',
@@ -44,23 +45,23 @@ def main():
     )
 
     # Initialize the remaining components
-    register_component(**crypto.component)
-    register_component(**database.component)
-    register_component(**jobexec.component)
+    registry.add(**crypto.component)
+    registry.add(**database.component)
+    registry.add(**jobexec.component)
 
     # Set up the application and register route blueprints
     app = flask.Flask(__name__)
     [app.register_blueprint(blueprint) for blueprint in blueprints]
 
     # Register Flask app as a component
-    register_component(
+    registry.add(
         flask.Flask,
         init=lambda: app,
         persist=True,
     )
 
     # Register the Sentry component only after app creation!
-    register_component(**sentry.component)
+    registry.add(**sentry.component)
 
     run()
 
