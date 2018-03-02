@@ -41,6 +41,7 @@ setup(
     extras_require={
         'develop': [
             'flake8',
+            'raven',
             'mypy',
         ],
     },

@@ -5,10 +5,17 @@ import pkg_resources
 import typing
 
 from flask import Flask
-from raven.contrib.flask import Sentry
-from raven.transport import Transport, default_transports
+try:
+    from raven.contrib.flask import Sentry
+    from raven.transport import Transport, default_transports
+except ImportError:
+    Sentry = None
+    Transport = None
+    default_transports = []
 
 from tubedlapi.components import settings as app_settings
+
+log = logging.getLogger(__name__)
 
 
 def get_package_version() -> str:
@@ -38,6 +45,10 @@ def get_transport_class(name: str) -> typing.Type[Transport]:
 def init_sentry(app: Flask, settings: app_settings.Settings) -> Sentry:
     ''' Initializes the Sentry DSN for Flask, if configured.
     '''
+
+    if not Sentry:
+        log.info('`raven.contrib.flask.Sentry` could not be imported -- is it installed?')
+        return None
 
     if settings.SENTRY_URL:
         app.config['SENTRY_CONFIG'] = {

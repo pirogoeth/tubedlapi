@@ -38,6 +38,8 @@ class Job(BaseModel):
         meta.update(kw)
         self.meta = json.dumps(meta)
 
+        return meta
+
     def to_dict(self) -> dict:
 
         return {
