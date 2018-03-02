@@ -41,7 +41,7 @@ def create_job(executor: JobExecutor):
             'request': {
                 'body': payload,
             },
-        }), status.CLIENT_ERROR
+        }), status.BAD_REQUEST
 
     try:
         profile = Profile.get(name=profile)

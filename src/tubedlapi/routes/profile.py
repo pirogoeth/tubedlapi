@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import typing
 from http import HTTPStatus as status
 from urllib.parse import unquote_plus
 
@@ -16,12 +15,12 @@ from flask.json import jsonify
 
 from tubedlapi.model.profile import Profile
 
-log = logging.getLogger(__name__)
 blueprint = Blueprint(
     'profile',
     __name__,
     url_prefix='/profiles',
 )
+log = logging.getLogger(__name__)
 
 
 @blueprint.route('/', methods=['GET'])
