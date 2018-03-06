@@ -37,7 +37,7 @@ class JobPostProcessor(PostProcessor):
         post-processor chain.
     '''
 
-    def __init__(self, job: Job):
+    def __init__(self, job: Job) -> None:
 
         self._job = job
 

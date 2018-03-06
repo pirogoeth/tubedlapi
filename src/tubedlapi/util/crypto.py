@@ -31,7 +31,7 @@ class CryptoProvider(object):
         _, salt, _ = message.split(b'$')
         return salt
 
-    def __init__(self, secret: bytes, iterations: int=10000, salt: bytes=None):
+    def __init__(self, secret: bytes, iterations: int=10000, salt: bytes=None) -> None:
         ''' Creates a CryptoProvider.
 
             Initializes the key which will be utilized in all
@@ -50,7 +50,7 @@ class CryptoProvider(object):
         kdf = self._make_kdf(iterations=iterations)
         self.key = kdf.derive(secret)
 
-    def _make_kdf(self, iterations: int=10000):
+    def _make_kdf(self, iterations: int=10000) -> PBKDF2HMAC:
         ''' Creates a KDF that can be used for derivation or
             verification.
 
