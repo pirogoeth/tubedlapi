@@ -19,9 +19,9 @@ from tubedlapi.components import settings
 modules = glob.glob(os.path.dirname(__file__) + '/*.py')
 __all__ = [os.path.basename(f)[:-3] for f in modules
            if not os.path.basename(f).startswith('_') and
-              not f.endswith('__init__.py') and os.path.isfile(f)]
+           not f.endswith('__init__.py') and os.path.isfile(f)]
 
-LOG = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 database_proxy = peewee.Proxy()
 database_migrator = None
@@ -55,22 +55,22 @@ def init_database_from_uri(db_uri: str) -> peewee.Proxy:
 
     global database_migrator
 
-    db_uri = parse_uri(db_uri)
+    parsed = parse_uri(db_uri)
 
-    if db_uri['protocol'] == 'sqlite':
-        database = FKSqliteDatabase(db_uri['resource'])
+    if parsed['protocol'] == 'sqlite':
+        database = FKSqliteDatabase(parsed['resource'])
         database_migrator = SqliteMigrator(database)
-    elif db_uri['protocol'] == 'postgres':
+    elif parsed['protocol'] == 'postgres':
         database = playhouse.postgres_ext.PostgresqlExtDatabase(
-            db_uri['database'],
-            user=db_uri['username'],
-            password=db_uri['password'],
-            host=db_uri['host'],
-            port=db_uri['port'],
+            parsed['database'],
+            user=parsed['username'],
+            password=parsed['password'],
+            host=parsed['host'],
+            port=parsed['port'],
         )
         database_migrator = PostgresqlMigrator(database)
     else:
-        raise ValueError('Unknown DB schema: {}'.format(db_uri['protocol']))
+        raise ValueError('Unknown DB schema: {}'.format(parsed['protocol']))
 
     database_proxy.initialize(database)
     database.connect()
@@ -89,15 +89,15 @@ def init_database_from_uri(db_uri: str) -> peewee.Proxy:
                 continue
 
             if issubclass(member_obj, BaseModel):
-                LOG.debug('Loading database model: %s.%s.%s' % (
+                log.debug('Loading database model: %s.%s.%s' % (
                     __package__, module, member))
                 tables.append(member_obj)
 
-    LOG.debug('Ensuring tables are safely created..')
+    log.debug('Ensuring tables are safely created..')
 
     try:
         database.create_tables(tables, safe=True)
-    except:
-        LOG.exception('An error occurred while ensuring tables')
+    except Exception:
+        log.exception('An error occurred while ensuring tables')
 
     return database_proxy

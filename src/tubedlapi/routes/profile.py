@@ -71,7 +71,7 @@ def create_profile() -> Response:
 
 
 @blueprint.route('/<string:name>', methods=['DELETE'])
-def delete_profile(name: str) -> dict:
+def delete_profile(name: str) -> Response:
 
     name = unquote_plus(name)
 
