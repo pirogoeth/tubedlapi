@@ -21,7 +21,7 @@ class JobExecutor(Component):
 
         return JobExecutor()
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.thread_pool = ThreadPoolExecutor(thread_name_prefix='tubedlapi')
         self.loop = asyncio.get_event_loop()
