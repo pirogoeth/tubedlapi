@@ -22,11 +22,13 @@ inject: Injector = make_injector(registry)
 def main():
 
     from tubedlapi.routes import (
+        destination,
         job,
         profile,
     )
 
     blueprints = [
+        destination.blueprint,
         job.blueprint,
         profile.blueprint,
     ]

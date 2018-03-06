@@ -94,7 +94,7 @@ class CryptoProvider(object):
 
         enc_blob = algo.encrypt(nonce, blob, None)
 
-        return '{nonce}${salt}${blob}'.format(
+        return b'{nonce}${salt}${blob}'.format(
             nonce=base64.b64encode(nonce),
             salt=base64.b64encode(self.salt),
             blob=base64.b64encode(enc_blob),

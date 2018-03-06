@@ -5,9 +5,10 @@ cffi==1.11.4
 chardet==3.0.4
 click==6.7
 cryptography==2.1.4
--e git+https://github.com/pirogoeth/diecast.git@master#egg=diecast
+-e git+https://github.com/pirogoeth/diecast.git@v0.2.1#egg=diecast
 dill==0.2.7.1
 Flask==0.12.2
+fs==2.0.18
 idna==2.6
 itsdangerous==0.24
 Jinja2==2.10
