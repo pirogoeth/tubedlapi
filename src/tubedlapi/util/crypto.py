@@ -94,11 +94,11 @@ class CryptoProvider(object):
 
         enc_blob = algo.encrypt(nonce, blob, None)
 
-        return b'{nonce}${salt}${blob}'.format(
-            nonce=base64.b64encode(nonce),
-            salt=base64.b64encode(self.salt),
-            blob=base64.b64encode(enc_blob),
-        ).encode()
+        return b'$'.join([
+            base64.b64encode(nonce),
+            base64.b64encode(self.salt),
+            base64.b64encode(enc_blob),
+        ])
 
     def decrypt_message(self, message: bytes) -> bytes:
         ''' Disassembles and decrypts a message with the following form

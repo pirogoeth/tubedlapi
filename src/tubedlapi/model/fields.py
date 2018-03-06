@@ -9,6 +9,8 @@ from peewee import BlobField
 from tubedlapi.app import inject
 from tubedlapi.util.crypto import CryptoProvider
 
+log = logging.getLogger(__name__)
+
 
 @inject
 def encrypt_blob(crypt: CryptoProvider, blob: bytes) -> bytes:
@@ -26,11 +28,17 @@ class EncryptedBlobField(BlobField):
     ''' A normal `BlobField` with transparent encryption on top.
     '''
 
-    def db_value(self, value: str) -> bytes:
+    def db_value(self, value: Union[bytes, str]) -> bytes:
         ''' Encrypt some bytes value and encode as `utf-8` string.
         '''
 
-        enc_blob: bytes = encrypt_blob(value.encode('utf-8'))
+        value_bytes: bytes = b''
+        if isinstance(value, str):
+            value_bytes = value.encode('utf-8')
+        else:
+            value_bytes = value
+
+        enc_blob: bytes = encrypt_blob(value_bytes)
         return enc_blob
 
     def python_value(self, value: bytes) -> str:
@@ -52,7 +60,7 @@ class EncryptedJSONBlobField(EncryptedBlobField):
             the JSON blob, and encode as `utf-8` string.
         '''
 
-        return super().db_value(json.dumps(value).encode('utf-8'))
+        return super().db_value(json.dumps(value))
 
     def python_value(self, value: bytes) -> Any:
         ''' Decrypt and decode the stored value from JSON

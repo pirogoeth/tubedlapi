@@ -14,8 +14,6 @@ from playhouse.migrate import (
 from importlib import import_module
 from malibu.text import parse_uri
 
-from tubedlapi.components import settings
-
 modules = glob.glob(os.path.dirname(__file__) + '/*.py')
 __all__ = [os.path.basename(f)[:-3] for f in modules
            if not os.path.basename(f).startswith('_') and
