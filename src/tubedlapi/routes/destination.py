@@ -8,7 +8,6 @@ import peewee
 from flask import (
     Blueprint,
     Response,
-    json,
     request,
 )
 from flask.json import jsonify
@@ -75,3 +74,32 @@ def create_destination() -> Response:
         return jsonify({
             'message': 'name already exists',
         }), status.CONFLICT
+
+
+@blueprint.route('/<string:name>', methods=['DELETE'])
+def delete_destination(name) -> Response:
+    ''' DELETE /destination/:name
+
+        Removes a download destination.
+
+        Returns the result and the details of the removed destination.
+    '''
+
+    name = unquote_plus(name)
+
+    try:
+        res = Destination.get(name=name)
+        last_state = res.to_dict()
+        res.delete_instance()
+
+        return jsonify({
+            'message': 'deleted',
+            'profile': last_state,
+        })
+    except Destination.DoesNotExist:
+        return jsonify({
+            'message': 'not found',
+            'query': {
+                'name': name,
+            },
+        }), status.NOT_FOUND
