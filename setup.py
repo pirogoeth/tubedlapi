@@ -40,9 +40,10 @@ setup(
     },
     extras_require={
         'develop': [
+            'autopep8',
             'flake8',
-            'raven',
             'mypy',
+            'raven',
         ],
     },
     install_requires=[

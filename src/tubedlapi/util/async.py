@@ -3,7 +3,10 @@
 import asyncio
 import functools
 import typing
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import (
+    Future,
+    ThreadPoolExecutor,
+)
 
 from diecast.component import Component
 
@@ -26,7 +29,7 @@ class JobExecutor(Component):
         self.thread_pool = ThreadPoolExecutor(thread_name_prefix='tubedlapi')
         self.loop = asyncio.get_event_loop()
 
-    def execute_future(self, func: typing.Callable, *args, **kw) -> asyncio.Future:
+    def execute_future(self, func: typing.Callable, *args, **kw) -> Future:
 
         return self.thread_pool.submit(func, *args, **kw)
 

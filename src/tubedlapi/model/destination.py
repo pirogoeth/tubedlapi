@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import fs
+from fs.base import FS
 from malibu.text import parse_uri
 from peewee import (
     AutoField,
@@ -15,6 +17,13 @@ class Destination(BaseModel):
     id = AutoField(primary_key=True)
     name = TextField(unique=True)
     url = EncryptedBlobField()
+
+    @property
+    def as_fs(self) -> FS:
+        ''' Returns a filesystem implementation derived from fs.base.FS
+        '''
+
+        return fs.open_fs(self.url)
 
     @property
     def sanitized_url(self) -> str:

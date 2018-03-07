@@ -60,6 +60,7 @@ def create_profile() -> Response:
     new_profile = Profile(**payload)
     try:
         new_profile.save()
+
         return jsonify({
             'message': 'success',
             'profile': new_profile.to_dict(),
@@ -79,6 +80,7 @@ def delete_profile(name: str) -> Response:
         res = Profile.get(name=name)
         last_state = res.to_dict()
         res.delete_instance()
+
         return jsonify({
             'message': 'deleted',
             'profile': last_state,

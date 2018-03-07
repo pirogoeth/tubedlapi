@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
 import logging
-from functools import partial
 from http import HTTPStatus as status
-from urllib.parse import unquote_plus
 
 from flask import (
     Blueprint,
@@ -13,11 +10,9 @@ from flask import (
 )
 from flask.json import jsonify
 
-from tubedlapi.app import inject
-from tubedlapi.exec import youtubedl
+from tubedlapi.exec import stage
 from tubedlapi.model.job import Job
 from tubedlapi.model.profile import Profile
-from tubedlapi.util.async import JobExecutor
 
 log = logging.getLogger(__name__)
 blueprint = Blueprint(
@@ -28,8 +23,11 @@ blueprint = Blueprint(
 
 
 @blueprint.route('/', methods=['POST'])
-@inject
-def create_job(executor: JobExecutor):
+def create_job():
+    ''' POST /job/
+
+        Creates a new job from a JSON payload.
+    '''
 
     payload = request.get_json()
     url = payload.get('url')
@@ -53,37 +51,17 @@ def create_job(executor: JobExecutor):
             },
         }), status.NOT_FOUND
 
-    # TODO: Make a new job record to use with the fetcher
+    # TODO: Do validation of `destinations` list
+    # TODO: Make sure each destination is included only once (collapse mult)
+
     job_record = Job.create(
         status='queued',
         meta=json.dumps(payload),
     )
 
-    # Create a partial of the fetcher job instead of beginning exec
-    future: asyncio.Future = executor.execute_future(
-        youtubedl.fetch_url,
-        job_record,
-        profile,
-    )
-    future.add_done_callback(
-        partial(
-            _create_job_callback,
-            job_record,
-        ),
-    )
+    stage.job_begin_fetch(job_record, profile)
 
     return job_record.to_json()
-
-
-def _create_job_callback(job: Job, fut: asyncio.Future):
-
-    exc = fut.exception()
-    if not fut.cancelled() and exc:
-        raise exc
-
-    if fut.done():
-        job.meta_update(result=fut.result())
-        job.save()
 
 
 @blueprint.route('/<uuid:job_id>')

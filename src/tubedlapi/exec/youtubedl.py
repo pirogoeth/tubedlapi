@@ -2,7 +2,7 @@
 
 import functools
 import logging
-import typing
+from typing import Any
 
 import youtube_dl
 from flask import json
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class FetchLogger(object):
 
-    def __init__(self, job: Job, profile: Profile):
+    def __init__(self, job: Job, profile: Profile) -> None:
 
         self.job = job
         self.profile = profile
@@ -41,7 +41,7 @@ class JobPostProcessor(PostProcessor):
 
         self._job = job
 
-    def filter_info(self, info):
+    def filter_info(self, info: dict) -> dict:
 
         return {
             'codecs': {
@@ -66,7 +66,7 @@ class JobPostProcessor(PostProcessor):
             },
         }
 
-    def run(self, info):
+    def run(self, info: dict):
         ''' Basically, a dummy implementation of run to get the final
             information dictionary from the end of the post-processor
             chain.
@@ -86,7 +86,7 @@ class JobPostProcessor(PostProcessor):
         return [], self.filter_info(info)
 
 
-def fetch_url(job: Job, profile: Profile):
+def fetch_url(job: Job, profile: Profile) -> Any:
 
     options = json.loads(profile.options)
     options.update({
@@ -102,7 +102,7 @@ def fetch_url(job: Job, profile: Profile):
     return _fetch(job.meta_dict['url'], options, job_proc)
 
 
-def _fetch(url: str, options: dict, job_proc: JobPostProcessor):
+def _fetch(url: str, options: dict, job_proc: JobPostProcessor) -> Any:
 
     with youtube_dl.YoutubeDL(options) as dl:
         job_proc.set_downloader(dl)
@@ -110,7 +110,7 @@ def _fetch(url: str, options: dict, job_proc: JobPostProcessor):
         return dl.download([url])
 
 
-def _progress_hook(job: Job, info: dict):
+def _progress_hook(job: Job, info: dict) -> None:
 
     if job.status != info['status']:
         log.info(
