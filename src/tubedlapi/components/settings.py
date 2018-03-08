@@ -22,6 +22,7 @@ class Settings(Component):
     SENTRY_LOG_LEVEL: int = logging.WARNING
     SENTRY_TRANSPORT: str = 'HTTPTransport'
     SENTRY_URL: str = None
+    SWAGGER: bool = True
 
     @classmethod
     def init(cls: Type[Component]):
@@ -35,6 +36,7 @@ class Settings(Component):
             os.getenv('LOG_LEVEL', 'INFO').upper(),
             logging.INFO,
         )
+        this.SWAGGER = os.getenv('SWAGGER', 'true').lower() == 'true'
 
         # Crypto settings
         this.CRYPTO_SECRET = os.getenv('CRYPTO_SECRET')

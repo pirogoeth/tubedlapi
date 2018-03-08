@@ -4,12 +4,13 @@ import logging
 
 import flask
 from diecast.inject import make_injector
-from diecast.registry import ComponentRegistry, get_registry
+from diecast.registry import ComponentRegistry
 from diecast.types import Injector
 
 from tubedlapi.components import (
     crypto,
     database,
+    flasgger,
     jobexec,
     sentry,
     settings as app_settings,
@@ -62,8 +63,9 @@ def main():
         persist=True,
     )
 
-    # Register the Sentry component only after app creation!
+    # Register flask extension components only after app creation!
     registry.add(**sentry.component)
+    registry.add(**flasgger.component)
 
     run()
 
