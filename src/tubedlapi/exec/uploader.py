@@ -94,10 +94,9 @@ def upload_to_destination(filename: str, dest_name: str) -> dict:
 
     # Try to find the destination model
     dest = Destination.get(name=dest_name)
-    fs = dest.as_fs
-
-    with io.open(filename, 'rb') as src_file:
-        fs.setfile(filename, src_file)
+    with dest.as_fs as fs:
+        with io.open(filename, 'rb') as src_file:
+            fs.setbinfile(filename, src_file)
 
     return {
         'success': True,
