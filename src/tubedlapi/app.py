@@ -20,7 +20,7 @@ registry = ComponentRegistry()
 inject: Injector = make_injector(registry)
 
 
-def main():
+def main() -> flask.Flask:
 
     from tubedlapi.routes import (
         destination,
@@ -67,14 +67,19 @@ def main():
     registry.add(**sentry.component)
     registry.add(**flasgger.component)
 
-    run()
+    return app
 
 
 @inject
-def run(app: flask.Flask, settings: app_settings.Settings):
+def run(settings: app_settings.Settings):
 
+    app = main()
     app.run(
         debug=settings.DEBUG,
         host=settings.HOST,
         port=settings.PORT,
     )
+
+
+# WSGI Entrypoint
+wsgi = main()

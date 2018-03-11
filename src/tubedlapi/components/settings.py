@@ -33,14 +33,14 @@ class Settings(Component):
 
         # Core application settings
         this.DATABASE_URI = os.getenv('DB_URI', Settings.DATABASE_URI)
-        this.DEBUG = os.getenv('DEBUG', Settings.Debug).lower() == 'true'
+        this.DEBUG = str(os.getenv('DEBUG', Settings.DEBUG)).lower() == 'true'
         this.HOST = os.getenv('HOST', Settings.HOST)
         this.LOG_LEVEL = logging._nameToLevel.get(
             os.getenv('LOG_LEVEL', 'INFO').upper(),
             logging.INFO,
         )
         this.PORT = int(os.getenv('PORT', Settings.PORT))
-        this.SWAGGER = str(os.getenv('SWAGGER', Settings.SWAGGER).lower()) == 'true'
+        this.SWAGGER = str(os.getenv('SWAGGER', Settings.SWAGGER)).lower() == 'true'
 
         # Crypto settings
         this.CRYPTO_SECRET = os.getenv('CRYPTO_SECRET')

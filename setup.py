@@ -31,7 +31,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'tubedlapi = tubedlapi.app:main',
+            'tubedlapi = tubedlapi.app:run',
         ],
         'flask.commands': [
             'make-secret = tubedlapi.cmd.crypto:cli_make_secret',
