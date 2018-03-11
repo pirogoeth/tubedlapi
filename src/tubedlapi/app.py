@@ -73,4 +73,8 @@ def main():
 @inject
 def run(app: flask.Flask, settings: app_settings.Settings):
 
-    app.run(debug=settings.DEBUG)
+    app.run(
+        debug=settings.DEBUG,
+        host=settings.HOST,
+        port=settings.PORT,
+    )

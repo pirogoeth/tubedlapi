@@ -16,9 +16,11 @@ class Settings(Component):
     CRYPTO_SALT: str = None
     CRYPTO_SECRET: str = None
     CRYPTO_KDF_ITERATIONS: int = 10000
-    DATABASE_URI: str = None
+    DATABASE_URI: str = 'sqlite:///:memory:'
     DEBUG: bool = False
+    HOST: str = 'localhost'
     LOG_LEVEL: int = logging.INFO
+    PORT: int = 5000
     SENTRY_LOG_LEVEL: int = logging.WARNING
     SENTRY_TRANSPORT: str = 'HTTPTransport'
     SENTRY_URL: str = None
@@ -30,31 +32,36 @@ class Settings(Component):
         this = Settings()
 
         # Core application settings
-        this.DATABASE_URI = os.getenv('DB_URI', 'sqlite:///:memory:')
-        this.DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
+        this.DATABASE_URI = os.getenv('DB_URI', Settings.DATABASE_URI)
+        this.DEBUG = os.getenv('DEBUG', Settings.Debug).lower() == 'true'
+        this.HOST = os.getenv('HOST', Settings.HOST)
         this.LOG_LEVEL = logging._nameToLevel.get(
             os.getenv('LOG_LEVEL', 'INFO').upper(),
             logging.INFO,
         )
-        this.SWAGGER = os.getenv('SWAGGER', 'true').lower() == 'true'
+        this.PORT = int(os.getenv('PORT', Settings.PORT))
+        this.SWAGGER = str(os.getenv('SWAGGER', Settings.SWAGGER).lower()) == 'true'
 
         # Crypto settings
         this.CRYPTO_SECRET = os.getenv('CRYPTO_SECRET')
         this.CRYPTO_SALT = os.getenv('CRYPTO_SALT')
 
         try:
-            this.CRYPTO_KDF_ITERATIONS = int(os.getenv('CRYPTO_KDF_ITERATIONS', '10000'))
+            this.CRYPTO_KDF_ITERATIONS = int(os.getenv(
+                'CRYPTO_KDF_ITERATIONS',
+                Settings.CRYPTO_KDF_ITERATIONS
+            ))
         except ValueError:
             log.exception('env:CRYPTO_KDF_ITERATIONS is not an integer, default to 10000')
-            this.CRYPTO_KDF_ITERATIONS = 10000
+            this.CRYPTO_KDF_ITERATIONS = Settings.CRYPTO_KDF_ITERATIONS
 
         # Sentry settings
         this.SENTRY_LOG_LEVEL = logging._nameToLevel.get(
             os.getenv('SENTRY_LOG_LEVEL', 'WARNING').upper(),
             logging.WARNING,
         )
-        this.SENTRY_TRANSPORT = os.getenv('SENTRY_TRANSPORT', 'HTTPTransport')
-        this.SENTRY_URL = os.getenv('SENTRY_URL', None)
+        this.SENTRY_TRANSPORT = os.getenv('SENTRY_TRANSPORT', Settings.SENTRY_TRANSPORT)
+        this.SENTRY_URL = os.getenv('SENTRY_URL', Settings.SENTRY_URL)
 
         # Validate important settings
         if not this.CRYPTO_SECRET:
