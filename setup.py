@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath('src'))
 
 setup(
     name='tubedlapi',
-    version='0.1.0',
+    version='0.1.1',
     description='RESTful API around youtube-dl',
 
     url='https://glow.dev.maio.me/sjohnson/tubedlapi',
@@ -43,7 +43,6 @@ setup(
             'autopep8',
             'flake8',
             'mypy',
-            'raven',
         ],
     },
     install_requires=[

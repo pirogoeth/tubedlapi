@@ -61,24 +61,10 @@ def create_job():
 
     stage.job_begin_fetch(job_record, profile)
 
-    return job_record.to_json()
+    return jsonify(job_record.to_dict())
 
 
 @blueprint.route('/<uuid:job_id>')
 def show_job(job_id: str):
 
-    return Job.get(id=job_id).to_json()
-
-
-@blueprint.route('/<uuid:job_id>', methods=['PUT'])
-def update_job(job_id: str):
-
-    # TODO: Get new stats from update payload
-    job_status = None
-
-    job = Job.get(id=id)
-    if job.status != job_status:
-        job.status = job_status
-        job.save()
-
-    return job.to_json()
+    return jsonify(Job.get(id=job_id).to_dict())

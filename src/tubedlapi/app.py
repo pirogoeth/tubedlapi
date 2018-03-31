@@ -24,12 +24,14 @@ def main() -> flask.Flask:
 
     from tubedlapi.routes import (
         destination,
+        health,
         job,
         profile,
     )
 
     blueprints = [
         destination.blueprint,
+        health.blueprint,
         job.blueprint,
         profile.blueprint,
     ]

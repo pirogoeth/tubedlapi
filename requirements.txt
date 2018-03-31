@@ -8,6 +8,7 @@ cryptography==2.1.4
 -e git+https://github.com/pirogoeth/diecast.git@v0.2.1#egg=diecast
 dill==0.2.7.1
 Flask==0.12.2
+flasgger==0.8.1
 fs==2.0.18
 idna==2.6
 itsdangerous==0.24
@@ -17,6 +18,7 @@ MarkupSafe==1.0
 peewee==3.0.17
 pycparser==2.18
 python-magic==0.4.15
+raven==6.6.0
 requests==2.18.4
 six==1.11.0
 urllib3==1.22
