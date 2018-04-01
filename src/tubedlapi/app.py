@@ -15,6 +15,7 @@ from tubedlapi.components import (
     sentry,
     settings as app_settings,
 )
+from tubedlapi.util import cors_headers
 
 registry = ComponentRegistry()
 inject: Injector = make_injector(registry)
@@ -57,6 +58,7 @@ def main() -> flask.Flask:
     # Set up the application and register route blueprints
     app = flask.Flask(__name__)
     [app.register_blueprint(blueprint) for blueprint in blueprints]
+    app.after_request(cors_headers)
 
     # Register Flask app as a component
     registry.add(
