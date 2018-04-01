@@ -22,9 +22,19 @@ blueprint = Blueprint(
 )
 
 
+@blueprint.route('/', methods=['GET'])
+def list_jobs():
+    ''' GET /jobs/
+
+        Lists all jobs
+    '''
+
+    return jsonify([j.to_dict() for j in Job.select()])
+
+
 @blueprint.route('/', methods=['POST'])
 def create_job():
-    ''' POST /job/
+    ''' POST /jobs/
 
         Creates a new job from a JSON payload.
     '''
@@ -66,5 +76,9 @@ def create_job():
 
 @blueprint.route('/<uuid:job_id>')
 def show_job(job_id: str):
+    ''' GET /jobs/:job_id
+
+        Get a job by uuid
+    '''
 
     return jsonify(Job.get(id=job_id).to_dict())
