@@ -2,12 +2,12 @@
 # DEPENDENCY IMAGE
 #
 
-FROM python:3.6-alpine AS build
+FROM containers.dev.maio.me/sjohnson/containers/python:latest AS build
 LABEL maintainer="Sean Johnson <pirogoeth@maio.me>"
 
 WORKDIR /wheel
 ADD ./requirements.txt /wheel
-RUN apk add --no-cache build-base git libffi-dev openssl-dev python-dev && \
+RUN apk add --no-cache build-base git libffi-dev libressl-dev python-dev && \
         pip wheel -r /wheel/requirements.txt && \
         rm -rf /wheel/requirements.txt
 
@@ -15,7 +15,7 @@ RUN apk add --no-cache build-base git libffi-dev openssl-dev python-dev && \
 # APP IMAGE
 #
 
-FROM python:3.6-alpine AS app
+FROM containers.dev.maio.me/sjohnson/containers/python:latest AS app
 
 COPY --from=build /wheel /wheel
 

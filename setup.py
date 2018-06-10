@@ -7,57 +7,37 @@ except ImportError:
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('src'))
+sys.path.insert(0, os.path.abspath("src"))
 
 setup(
-    name='tubedlapi',
-    version='0.1.1',
-    description='RESTful API around youtube-dl',
-
-    url='https://glow.dev.maio.me/sjohnson/tubedlapi',
-    author='Sean Johnson',
-    author_email='sean.johnson@maio.me',
-
-    license='MIT',
-
+    name="tubedlapi",
+    version="0.1.1",
+    description="RESTful API around youtube-dl",
+    url="https://glow.dev.maio.me/sjohnson/tubedlapi",
+    author="Sean Johnson",
+    author_email="sean.johnson@maio.me",
+    license="MIT",
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'License :: MIT',
-        'Programming Language :: Python :: 3',
+        "Development Status :: 4 - Beta",
+        "License :: MIT",
+        "Programming Language :: Python :: 3",
     ],
-    packages=find_packages('src'),
-    package_dir={
-        '': 'src'
-    },
+    packages=find_packages("src"),
+    package_dir={"": "src"},
     entry_points={
-        'console_scripts': [
-            'tubedlapi = tubedlapi.app:run',
-        ],
-        'flask.commands': [
-            'make-secret = tubedlapi.cmd.crypto:cli_make_secret',
-            'make-salt = tubedlapi.cmd.crypto:cli_make_salt',
+        "console_scripts": ["tubedlapi = tubedlapi.app:run"],
+        "flask.commands": [
+            "make-secret = tubedlapi.cmd.crypto:cli_make_secret",
+            "make-salt = tubedlapi.cmd.crypto:cli_make_salt",
         ],
     },
     extras_require={
-        'develop': [
-            'autopep8',
-            'flake8',
-            'mypy',
-        ],
+        "develop": ["autopep8", "flake8", "mypy", "python-dotenv", "black"]
     },
-    install_requires=[
-        'flask',
-        'youtube-dl',
-    ],
+    install_requires=["flask", "youtube-dl"],
     include_package_data=True,
-    exclude_package_data={
-        '': ['README.md'],
-    },
-    test_suite='nose.collector',
-    tests_require=[
-        'nose',
-        'coverage',
-        'requests',
-    ],
+    exclude_package_data={"": ["README.md"]},
+    test_suite="nose.collector",
+    tests_require=["nose", "coverage", "requests"],
     zip_safe=True,
 )
