@@ -5,12 +5,7 @@ import uuid
 from datetime import datetime
 
 from flask import json
-from peewee import (
-    BlobField,
-    DateTimeField,
-    TextField,
-    UUIDField,
-)
+from peewee import BlobField, DateTimeField, TextField, UUIDField
 
 from tubedlapi.model import BaseModel
 
@@ -23,14 +18,14 @@ class Job(BaseModel):
     meta = BlobField()
 
     @classmethod
-    def from_json(self, data: bytes) -> 'Job':
+    def from_json(self, data: bytes) -> "Job":
 
         return Job(**json.loads(data))
 
     @property
     def meta_dict(self) -> dict:
 
-        return json.loads(self.meta)
+        return json.loads(self.meta) if self.meta else {}
 
     def meta_update(self, **kw) -> dict:
 
@@ -43,10 +38,10 @@ class Job(BaseModel):
     def to_dict(self) -> dict:
 
         return {
-            'id': self.id,
-            'created_at': self.created_at,
-            'status': self.status,
-            'meta': self.meta_dict,
+            "id": self.id,
+            "created_at": self.created_at,
+            "status": self.status,
+            "meta": self.meta_dict,
         }
 
     def to_json(self) -> bytes:
