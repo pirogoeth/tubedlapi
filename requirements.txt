@@ -14,7 +14,7 @@ itsdangerous==1.1.0
 Jinja2==2.10
 malibu==0.1.8.post10
 MarkupSafe==1.1.0
-peewee==3.0.17
+peewee==3.8.1
 pycparser==2.18
 python-magic==0.4.15
 requests==2.18.4
