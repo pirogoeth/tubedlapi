@@ -6,7 +6,7 @@ chardet==3.0.4
 click==7.0
 cryptography==2.4.2
 -e git+https://github.com/pirogoeth/diecast.git@v0.2.1#egg=diecast
-dill==0.2.7.1
+dill==0.2.8.2
 Flask==0.12.2
 fs==2.0.18
 idna==2.6
