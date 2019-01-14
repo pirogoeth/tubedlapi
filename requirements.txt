@@ -21,4 +21,4 @@ requests==2.21.0
 six==1.12.0
 urllib3==1.24.1
 Werkzeug==0.14.1
-youtube-dl==2018.2.11
+youtube-dl==2019.1.10
