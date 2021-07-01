@@ -1,0 +1,93 @@
+---
+definitions:
+  Destination:
+    type: object
+    required:
+      - id
+      - name
+      - url
+    properties:
+      id:
+        type: integer
+        description: Internal ID of the destination
+        readOnly: true
+      name:
+        type: string
+        description: Friendly name of the destination
+      url:
+        type: string
+        description: pyfilesystem2 FS URL
+  Profile:
+    type: object
+    required:
+      - id
+      - name
+      - options
+    properties:
+      id:
+        type: integer
+        description: Internal ID of the profile
+        readOnly: true
+      name:
+        type: string
+        description: Friendly name of the download profile
+      options:
+        type: object
+        description: Object containing download and processing settings
+  Job:
+    type: object
+    required:
+      - id
+      - created_at
+      - status
+      - meta
+    properties:
+      id:
+        type: uuid
+        description: Internal ID of the job
+        readOnly: true
+      created_at:
+        type: dateTime
+        description: Timestamp when the job was created
+        readOnly: true
+      status:
+        type: string
+        description: Current status of the job
+        readOnly: true
+      meta:
+        description: Object containing download information and processing results
+        readOnly: true
+        $ref: "#/definitions/JobMeta"
+  JobMeta:
+    type: object
+    required:
+      - destinations
+      - profile
+      - info
+      - result
+    properties:
+      destinations:
+        type: array
+        items:
+          type: string
+      profile:
+        type: string
+      info:
+        type: object
+        description: Information about the download job
+        readOnly: true
+      result:
+        type: object
+        description: Result of the destination uploads
+        readOnly: true
+  QueryNotFound:
+    type: object
+    required:
+      - message
+      - query
+    properties:
+      message:
+        type: string
+        readOnly: true
+      query:
+        type: object

@@ -1,5 +1,6 @@
+repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  sha: master
+  rev: v1.3.0
   hooks:
   - id: flake8
     args:
@@ -11,3 +12,8 @@
   - id: fix-encoding-pragma
   - id: end-of-file-fixer
   - id: check-merge-conflict
+- repo: https://github.com/ambv/black.git
+  rev: 18.6b2
+  hooks:
+  - id: black
+    python_version: python3.6
